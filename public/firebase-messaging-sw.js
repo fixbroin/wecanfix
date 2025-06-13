@@ -20,7 +20,7 @@ const firebaseConfig = {
   storageBucket: "fixbroweb.firebasestorage.app",
   messagingSenderId: "18586372510",
   appId: "1:18586372510:web:6de2b5d6c92d5c3836ee8f"
-  measurementId: "YOUR_CLIENT_MEASUREMENT_ID" // Optional
+  
 };
 
 // Initialize the Firebase app in the service worker
