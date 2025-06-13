@@ -1,0 +1,64 @@
+
+"use client";
+
+import { useState, useEffect } from 'react';
+import { doc, onSnapshot, Timestamp } from "firebase/firestore";
+import { db } from '@/lib/firebase';
+import type { AppSettings, PlatformFeeSetting } from '@/types/firestore'; // Added PlatformFeeSetting
+import { defaultAppSettings } from '@/config/appDefaults';
+
+const APP_CONFIG_COLLECTION = "webSettings";
+const APP_CONFIG_DOC_ID = "applicationConfig";
+
+interface UseApplicationConfigReturn {
+  config: AppSettings;
+  isLoading: boolean;
+  error: string | null;
+}
+
+export function useApplicationConfig(): UseApplicationConfigReturn {
+  const [config, setConfig] = useState<AppSettings>(defaultAppSettings);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setIsLoading(true);
+    const configDocRef = doc(db, APP_CONFIG_COLLECTION, APP_CONFIG_DOC_ID);
+
+    const unsubscribe = onSnapshot(configDocRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const firestoreData = docSnap.data() as Partial<AppSettings>;
+        
+        const mergedSettings: AppSettings = {
+          ...defaultAppSettings,
+          ...firestoreData, // Overwrite defaults with Firestore data
+          timeSlotSettings: { // Deep merge for timeSlotSettings
+            ...defaultAppSettings.timeSlotSettings,
+            ...(firestoreData.timeSlotSettings || {}),
+            morning: { ...defaultAppSettings.timeSlotSettings.morning, ...(firestoreData.timeSlotSettings?.morning || {}) },
+            afternoon: { ...defaultAppSettings.timeSlotSettings.afternoon, ...(firestoreData.timeSlotSettings?.afternoon || {}) },
+            evening: { ...defaultAppSettings.timeSlotSettings.evening, ...(firestoreData.timeSlotSettings?.evening || {}) },
+          },
+          // Ensure platformFees is an array, defaulting to empty if not present in Firestore
+          platformFees: firestoreData.platformFees || defaultAppSettings.platformFees || [],
+        };
+        setConfig(mergedSettings);
+        setError(null);
+      } else {
+        setConfig(defaultAppSettings);
+        setError(null); 
+        console.warn(`Application config document '${APP_CONFIG_DOC_ID}' not found. Using default settings.`);
+      }
+      setIsLoading(false);
+    }, (err) => {
+      console.error("Error fetching application config:", err);
+      setError("Failed to load application settings.");
+      setConfig(defaultAppSettings); 
+      setIsLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  return { config, isLoading, error };
+}
