@@ -14,7 +14,7 @@ importScripts('https://www.gstatic.com/firebasejs/9.22.1/firebase-messaging-comp
 // Placeholder: Replace with your actual client-side Firebase config
 // These values would ideally come from the marketingSettings.firebaseClientConfig
 const firebaseConfig = {
-  apiKey: "AIzaSyCFpoVtfpcWXrGOw8D4LVVdHhRfoZhaSAA",
+  apiKey: "gg",
   authDomain: "fixbroweb.firebaseapp.com",
   projectId: "fixbroweb",
   storageBucket: "fixbroweb.firebasestorage.app",
